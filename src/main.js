@@ -82,5 +82,6 @@ try {
     recordButton.disabled = false;
 } catch (err) {
     console.error(err);
+    // eslint-disable-next-line
     debugger;
 }
