@@ -1,12 +1,16 @@
 import "./styles/normalize.css";
 
+const transcriber = new Worker(
+    new URL("./workers/transcriber-worker.js", import.meta.url),
+    {
+        type: "module",
+    },
+);
+
 // NOTE: Mocked implementation below,
 // but the logic will be the same for the real version
 
 const getMic = new Promise((resolve) => setTimeout(() => resolve(true), 2000));
-const getModel = new Promise((resolve) =>
-    setTimeout(() => resolve(true), 4000),
-);
 
 const appState = {
     MODEL_READY: false,
@@ -49,6 +53,12 @@ try {
             recordButton.textContent === recordTextButton.Stop &&
             transcriptionState === STATE.IN_PROGRESS
         ) {
+            // NOTE: Audio format: Float32Array 16 khz Mono
+            const audio = [];
+            transcriber.postMessage({ audio });
+            // NOTE: Instead of a console.log this onmessage will update the textarea
+            transcriber.onmessage = (ev) => console.log(ev);
+
             information.textContent = "Ready for next transcription";
 
             transcribeTextArea.hidden = false;
@@ -71,8 +81,7 @@ try {
         throw new Error("Error: Microphone Not Found");
     }
 
-    const model = await getModel;
-    if (model) {
+    if (transcriber) {
         appState.MODEL_READY = true;
         information.textContent = "Model Ready! — Ready to Transcribe!";
     } else {
