@@ -12,6 +12,9 @@
   "engines": {
     "node": ">=24 <25"
   },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1"
+  },
   "devDependencies": {
     "@eslint/css": "^0.14.1",
     "@eslint/js": "^10.0.1",
