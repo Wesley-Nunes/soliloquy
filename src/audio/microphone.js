@@ -16,15 +16,16 @@ export async function getMicrophoneStream() {
         return stream;
     } catch (err) {
         if (err.name === "NotAllowedError") {
-            throw new Error("Microphone permission denied");
+            throw new Error("Microphone permission denied", { cause: err });
         }
         if (err.name === "NotFoundError") {
-            throw new Error("No microphone found");
+            throw new Error("No microphone found", { cause: err });
         }
         if (err.name === "OverconstrainedError") {
-            throw new Error("Requested audio constraints cannot be satisfied");
+            throw new Error("Requested audio constraints cannot be satisfied", {
+                cause: err,
+            });
         }
-
         throw err;
     }
 }
