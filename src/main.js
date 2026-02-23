@@ -1,94 +1,32 @@
+import { workletNode } from "./audio/audio-context";
+
 import "./styles/normalize.css";
 
-const transcriber = new Worker(
-    new URL("./workers/transcriber-worker.js", import.meta.url),
-    {
-        type: "module",
-    },
-);
-
-// NOTE: Mocked implementation below,
-// but the logic will be the same for the real version
-
-const getMic = new Promise((resolve) => setTimeout(() => resolve(true), 2000));
-
-const appState = {
-    MODEL_READY: false,
-    MICROPHONE_READY: false,
-};
-const STATE = {
-    IDLE: "IDLE",
-    IN_PROGRESS: "IN_PROGRESS",
-    SUCCESS: "SUCCESS",
-    ERROR: "ERROR",
-};
-const recordTextButton = {
-    Record: "Record",
-    Stop: "Stop",
-};
-
-let transcriptionState = STATE.IDLE;
-
-const information = document.querySelector("#text-information");
-const transcribeTextArea = document.querySelector("#transcription");
-const recordButton = document.querySelector("#recording-button");
-
 try {
-    recordButton.addEventListener("click", () => {
-        if (
-            recordButton.textContent === recordTextButton.Record &&
-            transcriptionState === STATE.IDLE
-        ) {
-            information.textContent = "Recording...";
-            transcriptionState = STATE.IN_PROGRESS;
+    const transcriber = new Worker(
+        new URL("./workers/transcriber-worker.js", import.meta.url),
+        {
+            type: "module",
+        },
+    );
+    const startButton = document.querySelector("#start");
+    const stopButton = document.querySelector("#stop");
 
-            transcribeTextArea.hidden = true;
-
-            recordButton.textContent = recordTextButton.Stop;
-            // NOTE: Ensure the audio clip have the maximum size of 30 seconds
-            setTimeout(() => {
-                recordButton.click();
-            }, 30000);
-        } else if (
-            recordButton.textContent === recordTextButton.Stop &&
-            transcriptionState === STATE.IN_PROGRESS
-        ) {
-            // NOTE: Audio format: Float32Array 16 khz Mono
-            const audio = [];
-            transcriber.postMessage({ audio });
-            // NOTE: Instead of a console.log this onmessage will update the textarea
-            transcriber.onmessage = (ev) => console.log(ev);
-
-            information.textContent = "Ready for next transcription";
-
-            transcribeTextArea.hidden = false;
-            transcribeTextArea.textContent = "lorem ipsum dolor met";
-            transcriptionState = STATE.SUCCESS;
-
-            recordButton.textContent = recordTextButton.Record;
-            transcriptionState = STATE.IDLE;
-        } else {
-            transcriptionState = STATE.ERROR;
-            throw new Error("recordButton/transcription Error");
-        }
+    startButton.addEventListener("click", () => {
+        workletNode.port.postMessage("startRecording");
+    });
+    stopButton.addEventListener("click", () => {
+        workletNode.port.postMessage("stopRecording");
     });
 
-    const mic = await getMic;
-    if (mic) {
-        appState.MICROPHONE_READY = true;
-        information.textContent = "Microphone Ready! — Downloading the Model!";
-    } else {
-        throw new Error("Error: Microphone Not Found");
-    }
+    workletNode.port.onmessage = (event) => {
+        if (event.data.event === "data") {
+            const audio = event.data.audioData;
+            transcriber.postMessage({ audio });
+        }
+    };
 
-    if (transcriber) {
-        appState.MODEL_READY = true;
-        information.textContent = "Model Ready! — Ready to Transcribe!";
-    } else {
-        throw new Error("Error: Model Not Found");
-    }
-
-    recordButton.disabled = false;
+    transcriber.onmessage = (ev) => console.log(ev);
 } catch (err) {
     console.error(err);
     // eslint-disable-next-line
