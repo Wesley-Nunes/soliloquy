@@ -7,17 +7,17 @@ try {
         "automatic-speech-recognition",
         "Xenova/whisper-tiny.en",
     );
-    postMessage({ type: "ready" });
+    postMessage({ event: "model:ready" });
 } catch (error) {
-    postMessage({ type: "error", error: error.message });
+    postMessage({ event: "model:error", content: error.message });
 }
 
 onmessage = async (event) => {
     try {
         const { audio } = event.data;
         const output = await transcriber(audio);
-        postMessage({ type: "result", text: output.text });
+        postMessage({ event: "model:result", content: output.text });
     } catch (error) {
-        postMessage({ type: "error", error: error.message });
+        postMessage({ event: "model:error", content: error.message });
     }
 };
