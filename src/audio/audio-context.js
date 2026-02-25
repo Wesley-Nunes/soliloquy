@@ -1,15 +1,20 @@
-import { getMicrophoneStream } from "./microphone";
+let workletNode;
 
-const stream = await getMicrophoneStream();
-const audioContext = new AudioContext({ sampleRate: 16000 });
-const source = audioContext.createMediaStreamSource(stream);
+async function loadAudioContext(micStream) {
+    const audioContext = new AudioContext({ sampleRate: 16000 });
+    const source = audioContext.createMediaStreamSource(micStream);
 
-await audioContext.audioWorklet.addModule(
-    new URL("./worklet/pcm-processor.js", import.meta.url),
-);
+    await audioContext.audioWorklet.addModule(
+        new URL("./worklet/pcm-processor.js", import.meta.url),
+    );
 
-const workletNode = new AudioWorkletNode(audioContext, "pcm-processor");
+    workletNode = new AudioWorkletNode(audioContext, "pcm-processor");
 
-source.connect(workletNode);
+    source.connect(workletNode);
+}
 
-export { workletNode };
+function getPCM() {
+    return workletNode;
+}
+
+export { loadAudioContext, getPCM };

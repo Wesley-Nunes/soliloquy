@@ -6,10 +6,10 @@ class PCMProcessor extends AudioWorkletProcessor {
         this.isRecording = false;
 
         this.port.onmessage = ({ data }) => {
-            if (data === "startRecording") {
+            if (data === "recording:start") {
                 this.isRecording = true;
                 this.accumulated = [];
-            } else if (data === "stopRecording") {
+            } else if (data === "recording:stop") {
                 this.isRecording = false;
                 this.flush();
             }
@@ -19,7 +19,7 @@ class PCMProcessor extends AudioWorkletProcessor {
     flush() {
         const pcmBuffer = new Float32Array(this.accumulated);
 
-        this.port.postMessage({ event: "data", audioData: pcmBuffer });
+        this.port.postMessage({ event: "pcm:data", content: pcmBuffer });
     }
 
     process(inputs) {
