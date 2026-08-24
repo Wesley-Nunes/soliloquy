@@ -16,4 +16,13 @@ export default defineConfig([
         language: "css/css",
         extends: ["css/recommended"],
     },
+    {
+        files: ["src/audio/worklet/**/*.js"],
+        languageOptions: {
+            globals: { ...globals.audioWorklet },
+        },
+    },
+    {
+        ignores: ["**/dist/**"],
+    },
 ]);

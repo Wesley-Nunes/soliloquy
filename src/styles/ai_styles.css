@@ -1,0 +1,228 @@
+/* CSS Variables for easy theme management */
+:root {
+    --bg-dark: #1d0b41;
+    --text-light: #f2e5d5;
+    --primary-light: #83db57;
+    --accent-coral: #db8357;
+    --disabled-opacity: 0.5;
+}
+
+/* Base styles using normalize */
+body {
+    background-color: var(--bg-dark);
+    color: var(--primary-light);
+    font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        Roboto,
+        "Helvetica Neue",
+        sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+#app {
+    background: rgba(255, 255, 255, 0.03);
+    /* eslint-disable-next-line css/use-baseline */
+    backdrop-filter: blur(2px);
+    border-radius: 2rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Title */
+h1 {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+}
+
+/* Status paragraph */
+#text-information {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    background: rgba(255, 113, 91, 0.1);
+    display: inline-block;
+    padding: 0.3rem 1rem;
+    margin: 0 0 1.5rem;
+    /* eslint-disable-next-line css/use-baseline */
+    backdrop-filter: blur(2px);
+}
+
+/* Textarea */
+#transcription {
+    width: 100%;
+    background: rgba(211, 249, 181, 0.07);
+    border: 1px solid rgba(211, 249, 181, 0.2);
+    border-radius: 1rem;
+    padding: 1rem;
+    color: var(--text-light);
+    font-size: 1rem;
+    /* eslint-disable-next-line css/font-family-fallbacks */
+    font-family: inherit;
+    /* eslint-disable-next-line css/use-baseline */
+    resize: vertical;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box;
+}
+
+#transcription:focus {
+    outline: none;
+    border-color: var(--accent-coral);
+    box-shadow: 0 0 0 3px rgba(255, 113, 91, 0.3);
+}
+
+#transcription::placeholder {
+    color: rgba(211, 249, 181, 0.4);
+    font-style: italic;
+}
+
+/* Button group */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Base button styles */
+button {
+    background: transparent;
+    color: var(--primary-light);
+    border: 2px solid var(--primary-light);
+    padding: 0.8rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 140px;
+    position: relative;
+    overflow: hidden;
+    /* eslint-disable-next-line css/use-baseline */
+    backdrop-filter: blur(2px);
+}
+
+/* Individual button flavours */
+#start {
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+}
+
+#stop {
+    border-color: var(--accent-coral);
+    color: var(--accent-coral);
+}
+
+/* Hover effects for enabled buttons */
+button:enabled:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+#start:enabled:hover {
+    background-color: var(--primary-light);
+    color: var(--bg-dark);
+    border-color: var(--primary-light);
+}
+
+#stop:enabled:hover {
+    background-color: var(--accent-coral);
+    color: var(--bg-dark);
+    border-color: var(--accent-coral);
+}
+
+/* Disabled state */
+button:disabled {
+    opacity: var(--disabled-opacity);
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+    border-color: #888;
+    color: #aaa;
+}
+
+/* Recording indicator: when stop is enabled (recording in progress) */
+#stop:enabled {
+    animation: pulseRecording 1.5s infinite;
+    position: relative;
+}
+
+@keyframes pulseRecording {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 113, 91, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 113, 91, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 113, 91, 0);
+    }
+}
+
+/* Optional: add a subtle dot for extra flair */
+#stop:enabled::after {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-coral);
+    border-radius: 50%;
+    margin-left: 8px;
+    animation: dotPulse 1.5s infinite;
+    vertical-align: middle;
+}
+
+@keyframes dotPulse {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+/* Start button gets a subtle glow when enabled */
+#start:enabled {
+    box-shadow: 0 0 10px rgba(211, 249, 181, 0.3);
+}
+
+/* Mobile adjustments */
+@media (max-width: 500px) {
+    #app {
+        padding: 1.5rem;
+        border-radius: 1.5rem;
+    }
+
+    .button-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    button {
+        width: 100%;
+        min-width: auto;
+        padding: 0.8rem 1rem;
+    }
+
+    #stop:enabled::after {
+        margin-left: 4px;
+    }
+}

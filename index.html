@@ -7,7 +7,20 @@
         <title>Soliloquy</title>
     </head>
     <body>
-        <div id="app"></div>
+        <div id="app">
+            <h1>Soliloquy</h1>
+            <p id="text-information">Loading</p>
+            <textarea
+                id="transcription"
+                placeholder="Your transcription will appear here..."
+                rows="6"
+                disabled
+            ></textarea>
+            <div class="button-group">
+                <button id="start" disabled>Start</button>
+                <button id="stop" disabled>Stop</button>
+            </div>
+        </div>
         <script type="module" src="/src/main.js"></script>
     </body>
 </html>
