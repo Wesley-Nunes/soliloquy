@@ -33,7 +33,10 @@ on("microphone:ready", ({ detail: micStream }) => {
             emit("recording:audio", audio);
         };
         mediaRecorder.onerror = ({ error }) => {
-            emit("recording:error", error || new Error("Audio recording failed"));
+            emit(
+                "recording:error",
+                error || new Error("Audio recording failed"),
+            );
         };
     } catch (err) {
         emit("recording:unavailable", err);
