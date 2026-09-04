@@ -1,5 +1,6 @@
 import { on, emit } from "./eventBus.js";
 import { getMicrophoneStream, getPCM, loadAudioContext } from "./audio";
+import "./audio/recorder.js";
 
 // 1. Model
 try {
@@ -30,16 +31,15 @@ try {
 }
 
 // 2. Microphone
-let micStream;
 try {
-    micStream = await getMicrophoneStream();
-    emit("microphone:ready");
+    const micStream = await getMicrophoneStream();
+    emit("microphone:ready", micStream);
 } catch (err) {
     emit("microphone:error", err);
 }
 
 // 3. Audio Context
-on("microphone:ready", async () => {
+on("microphone:ready", async ({ detail: micStream }) => {
     try {
         await loadAudioContext(micStream);
 
@@ -75,8 +75,49 @@ const startButton = document.querySelector("#start");
 const stopButton = document.querySelector("#stop");
 const transcription = document.querySelector("#transcription");
 const textInformation = document.querySelector("#text-information");
+const recordingAudio = document.querySelector("#recording-audio");
 const setupComplete = { model: false, audio: false };
 const READY_TEXT = "Ready to record";
+let pendingAudio;
+let pendingTranscription;
+let recordingUrl;
+let recorderUnavailable = false;
+
+function enableStartWhenReady() {
+    if (setupComplete.model && setupComplete.audio && !recorderUnavailable) {
+        startButton.disabled = false;
+    }
+}
+
+function resetAudioPlayer() {
+    pendingAudio = undefined;
+    pendingTranscription = undefined;
+    recordingAudio.pause();
+    recordingAudio.removeAttribute("src");
+    recordingAudio.load();
+    recordingAudio.hidden = true;
+
+    if (recordingUrl) {
+        URL.revokeObjectURL(recordingUrl);
+        recordingUrl = undefined;
+    }
+}
+
+function showRecordingResult() {
+    if (!pendingAudio || pendingTranscription === undefined) {
+        return;
+    }
+
+    if (recordingUrl) {
+        URL.revokeObjectURL(recordingUrl);
+    }
+    recordingUrl = URL.createObjectURL(pendingAudio);
+    recordingAudio.src = recordingUrl;
+    recordingAudio.hidden = false;
+    transcription.textContent = pendingTranscription;
+    textInformation.textContent = READY_TEXT;
+    startButton.disabled = false;
+}
 
 startButton.addEventListener("click", () => {
     emit("recording:start");
@@ -88,42 +129,75 @@ stopButton.addEventListener("click", () => {
 on("model:ready", () => {
     setupComplete.model = true;
     if (setupComplete.audio) {
-        startButton.disabled = false;
-        textInformation.textContent = READY_TEXT;
-        textInformation.style.backgroundColor = "transparent";
-        textInformation.style.color = "var(--text-light)";
-        transcription.disabled = false;
+        enableStartWhenReady();
+        if (!recorderUnavailable) {
+            textInformation.textContent = READY_TEXT;
+            textInformation.style.backgroundColor = "transparent";
+            textInformation.style.color = "var(--text-light)";
+            transcription.disabled = false;
+        }
     }
 });
 on("audio:ready", () => {
     setupComplete.audio = true;
     if (setupComplete.model) {
-        startButton.disabled = false;
-        textInformation.textContent = READY_TEXT;
-        textInformation.style.backgroundColor = "transparent";
-        textInformation.style.color = "var(--text-light)";
-        transcription.disabled = false;
+        enableStartWhenReady();
+        if (!recorderUnavailable) {
+            textInformation.textContent = READY_TEXT;
+            textInformation.style.backgroundColor = "transparent";
+            textInformation.style.color = "var(--text-light)";
+            transcription.disabled = false;
+        }
     }
 });
 on("model:result", ({ detail }) => {
-    transcription.textContent = detail;
-    textInformation.textContent = READY_TEXT;
+    pendingTranscription = detail;
+    showRecordingResult();
+});
+on("recording:audio", ({ detail }) => {
+    pendingAudio = detail;
+    showRecordingResult();
 });
 on("recording:start", () => {
+    resetAudioPlayer();
+    transcription.textContent = "";
     startButton.disabled = true;
     stopButton.disabled = false;
     textInformation.textContent = "Recording...";
 });
 on("recording:stop", () => {
-    startButton.disabled = false;
+    startButton.disabled = true;
     stopButton.disabled = true;
     textInformation.textContent = "Transcribing...";
 });
+on("recording:error", ({ detail }) => {
+    console.error(detail);
+    enableStartWhenReady();
+    stopButton.disabled = true;
+    textInformation.textContent = "Recording failed";
+});
+on("recording:unavailable", ({ detail }) => {
+    recorderUnavailable = true;
+    console.error(detail);
+    startButton.disabled = true;
+    stopButton.disabled = true;
+    textInformation.textContent = "Audio recording is unavailable";
+});
+on("model:error", ({ detail }) => {
+    console.error(detail);
+    enableStartWhenReady();
+    stopButton.disabled = true;
+    textInformation.textContent = "Transcription failed";
+});
+
+window.addEventListener("pagehide", () => {
+    if (recordingUrl) {
+        URL.revokeObjectURL(recordingUrl);
+    }
+});
 
 // NOTE: Temporally log the errors:
-on("model:error", ({ detail }) => console.error(detail));
 on("microphone:error", ({ detail }) => console.error(detail));
 on("audio:error", ({ detail }) => console.error(detail));
-on("recording:error", ({ detail }) => console.error(detail));
 on("pcm:error", ({ detail }) => console.error(detail));
 on("ui:error", ({ detail }) => console.error(detail));

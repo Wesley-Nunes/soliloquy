@@ -2,6 +2,10 @@
 
 A lightweight, browser-based speech-to-text app. Soliloquy records spoken English through your microphone and transcribes it locally in the browser with Whisper Tiny.
 
+## Live version
+
+Try the production app at [soliloquy-onyx.vercel.app](https://soliloquy-onyx.vercel.app/).
+
 ## Features
 
 - Records audio directly from your microphone

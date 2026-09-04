@@ -1,0 +1,8 @@
+model = "gpt-5.6-terra"
+[[hooks.Stop]]
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = "npm run format >/dev/null && npm run lint >/dev/null && printf '{\"continue\":true}\\n'"
+timeout = 60
+statusMessage = "Formatting and linting"
